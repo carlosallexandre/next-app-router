@@ -4,6 +4,7 @@ import { z } from "zod";
 import { sql } from "@vercel/postgres";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { signIn } from "@/auth";
 
 // prettier-ignore
 const InvoiceSchema = z.object({
@@ -109,5 +110,22 @@ export async function deleteInvoice(id: string) {
     return { message: "Deleted Invoice." };
   } catch (err) {
     return { message: "Database Error: Failed to Delete Invoice." };
+  }
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData
+) {
+  try {
+    await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+  } catch (err) {
+    if ((err as Error).message.includes("CredentialsSignin")) {
+      return "CredentialSignin";
+    }
+    throw err;
   }
 }
